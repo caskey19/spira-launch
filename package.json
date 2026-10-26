@@ -1,0 +1,9 @@
+{
+  "name": "spira-launch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Spira coming-soon product launch with the revision 4 interactive fiber shaker",
+  "scripts": {"dev": "node tools/serve.mjs", "start": "node tools/serve.mjs", "check": "node tools/check.mjs"},
+  "engines": {"node": ">=20"}
+}
