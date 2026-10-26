@@ -1,6 +1,6 @@
 # Spira — coming soon
 
-A presentation-only product launch page for the current Spira natural-fiber shaker concept. Cream, dark olive and tactile product imagery, with interactive Three.js views of the actual revision 4 geometry.
+A presentation-only product launch page for the current Spira natural-fiber shaker concept. Cream, dark olive and tactile product imagery, with interactive Three.js views of the actual revision 5 geometry.
 
 ## Run locally
 
@@ -31,7 +31,7 @@ This checks local assets and anchors, scope restrictions, JS syntax, product geo
 - `dist/index.html`: complete page content and accessible landmarks.
 - `dist/style.css`: responsive layout and design tokens.
 - `dist/app.js`: interaction state and lazy viewer initialization.
-- `dist/assets/spira-model.js`: geometry extracted from the current review model, shared by every viewer.
+- `dist/assets/spira-model.js`: geometry extracted from the revision 5 review model, shared by every viewer. Rounded closures, integrated grip relief, offset drinking spout and a refined paper finish.
 - `dist/assets/viewer.js`: lighting, camera, input and bounded user-triggered transitions. No permanent animation loop.
 - `docs/product-design.md`: product assumptions and unresolved validation questions.
 

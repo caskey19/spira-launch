@@ -1,6 +1,6 @@
-// Adapted directly from SPIRA's revision 4 review model. Dimensions in mm.
+// Adapted directly from SPIRA's revision 5 review model. Dimensions in mm.
 import * as THREE from './vendor/three.module.js';
-export const SPIRA_SPEC=Object.freeze({height:195,diameter:90,depth:10,outsideDepth:1.6,turns:2,wall:3,opening:24});
+export const SPIRA_SPEC=Object.freeze({height:195,diameter:90,depth:10,outsideDepth:1,turns:2,wall:3,opening:24});
 export function createSpiraModel(options={}){
 const params={...SPIRA_SPEC,explode:0,section:false,flip:false,...options};
 let product,bodyGroup,bodyMesh,lidGroup,flipGroup,rebuild,updatePose;
@@ -8,20 +8,20 @@ const scene=new THREE.Group(),floor={visible:true};let lidDetail=false,yaw=0;
 function sanitize(){params.height=Math.max(190,Math.min(250,params.height));}
 function fiberTexture(){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=768;
-  const ctx=canvas.getContext('2d');ctx.fillStyle='#bfb29b';ctx.fillRect(0,0,768,768);
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#d2c9b8';ctx.fillRect(0,0,768,768);
   let seed=92;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  for(let i=0;i<44000;i++){
+  for(let i=0;i<28000;i++){
     const x=random()*768,y=random()*768,v=random();
-    ctx.strokeStyle=v>.5?'rgba(245,237,218,.34)':'rgba(86,74,57,.22)';
-    ctx.lineWidth=.2+random()*.9;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+(random()-.4)*11,y+random()*4);ctx.stroke();
+    ctx.strokeStyle=v>.5?'rgba(248,244,232,.24)':'rgba(112,104,87,.16)';
+    ctx.lineWidth=.2+random()*.9;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+(random()-.4)*6,y+random()*4);ctx.stroke();
   }
   const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;
-  map.wrapS=map.wrapT=THREE.RepeatWrapping;map.repeat.set(2,2);return map;
+  map.wrapS=map.wrapT=THREE.RepeatWrapping;map.repeat.set(1.4,1.4);return map;
 }
 const fiber=fiberTexture();
-const bodyMaterial=new THREE.MeshStandardMaterial({color:'#f4eee1',map:fiber,bumpMap:fiber,bumpScale:.42,roughness:1,side:THREE.DoubleSide});
-const coatingMaterial=new THREE.MeshStandardMaterial({color:'#eee4ce',map:fiber,bumpMap:fiber,bumpScale:.08,roughness:.74,side:THREE.DoubleSide});
-const sectionMaterial=new THREE.MeshStandardMaterial({color:'#eee1c9',map:fiber,bumpMap:fiber,bumpScale:.3,roughness:1,side:THREE.DoubleSide});
+const bodyMaterial=new THREE.MeshStandardMaterial({color:'#fffdf6',map:fiber,bumpMap:fiber,bumpScale:.16,roughness:1,side:THREE.DoubleSide});
+const coatingMaterial=new THREE.MeshStandardMaterial({color:'#f4efe3',map:fiber,bumpMap:fiber,bumpScale:.055,roughness:.86,side:THREE.DoubleSide});
+const sectionMaterial=new THREE.MeshStandardMaterial({color:'#eee7d8',map:fiber,bumpMap:fiber,bumpScale:.18,roughness:1,side:THREE.DoubleSide});
 const sectionPlane=new THREE.Plane(new THREE.Vector3(1,0,0),0);
 const lidMaterial=bodyMaterial.clone(); // Exactly the same finish and tint as the body.
 const lidInnerMaterial=coatingMaterial.clone();
@@ -107,7 +107,7 @@ function roundedBox(w,h,d,r=.8){
 }
 function brand(){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=190;
-  const ctx=canvas.getContext('2d');ctx.fillStyle='#5c4730';ctx.textAlign='center';ctx.font='400 115px Arial';ctx.fillText('spira',256,125);
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#68604e';ctx.textAlign='center';ctx.font='400 104px Arial';ctx.fillText('spira',256,125);
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
   const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
   const y=bodyHeight()*.65;
@@ -134,7 +134,7 @@ function disposeGeometry(group){
 }
 function neckThread(parent,neckR,h){
   // One continuous helical bead, instead of the old nonfunctional stacked rings.
-  const points=[],pitch=2.6,turns=2.15;
+  const points=[],pitch=3.2,turns=1.65;
   for(let i=0;i<=260;i++){const t=i/260,a=t*turns*Math.PI*2;points.push(new THREE.Vector3(Math.sin(a)*(neckR+.38),h-7+t*turns*pitch,Math.cos(a)*(neckR+.38)));}
   return newMesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),260,.43,8,false),bodyMaterial,parent,'Main lid / neck seal','external_helical_thread');
 }
@@ -145,9 +145,13 @@ function threadedSkirt(neckR,h){
     const y=side?high-(high-low)*j/ny:low+(high-low)*j/ny;
     for(let i=0;i<=na;i++){
       const a=i/na*Math.PI*2;
-      let delta=(y-(h-7)-2.6*a/(Math.PI*2))%2.6;if(delta<0)delta+=2.6;delta=Math.min(delta,2.6-delta);
+      let delta=(y-(h-7)-3.2*a/(Math.PI*2))%3.2;if(delta<0)delta+=3.2;delta=Math.min(delta,3.2-delta);
       const groove=(y>h-7.8&&y<h-1)?.9*Math.exp(-.5*(delta/.52)**2):0;
-      const r=side?neckR+.3+groove:outer;
+      const crown=y>h+1.7?1.1*(1-Math.cos(Math.min(1,(y-h-1.7)/1.7)*Math.PI/2)):0;
+      const heel=y<low+.65?.3*(1-Math.sin((y-low)/.65*Math.PI/2)):0;
+      const gripFade=Math.max(0,Math.min(1,(y-low-.8)/1.3,(h+.8-y)/1.3));
+      const fluting=.3*gripFade*Math.pow(.5+.5*Math.cos(24*a),4);
+      const r=side?neckR+.3+groove:outer-crown-heel-fluting;
       vertices.push(Math.sin(a)*r,y,Math.cos(a)*r);uv.push(i/na,j/ny);
     }
   }
@@ -165,9 +169,11 @@ function spoutCapSleeve(inner,outer,height){
     const y=side?height-height*j/ny:height*j/ny;
     for(let i=0;i<=na;i++){
       const a=i/na*Math.PI*2;
-      let d=(y-1-2.6*a/(Math.PI*2))%2.6;if(d<0)d+=2.6;d=Math.min(d,2.6-d);
-      const relief=y>.4&&y<7.6?.7*Math.exp(-.5*(d/.43)**2):0;
-      const r=side?inner+relief:outer;
+      let d=(y-2.8-3.2*a/(Math.PI*2))%3.2;if(d<0)d+=3.2;d=Math.min(d,3.2-d);
+      const relief=y>2.1&&y<8.5?.9*Math.exp(-.5*(d/.52)**2):0;
+      const heel=y<.65?.45*(1-Math.sin(y/.65*Math.PI/2)):0;
+      const fluting=.45*Math.sin(Math.PI*y/height)*Math.pow(.5+.5*Math.cos(16*a),4);
+      const r=side?inner+relief:outer-heel-fluting;
       vertices.push(Math.sin(a)*r,y,Math.cos(a)*r);uv.push(i/na,j/ny);
     }
   }
@@ -179,39 +185,45 @@ function spoutCapSleeve(inner,outer,height){
 function closureGeometry(h,neckR){
   const part='Main lid / neck seal',drinkPart='Drink spout / screw closure';
   const deckBottom=h+.6,deckThickness=2.8,deckTop=deckBottom+deckThickness;
-  const portR=params.opening/2,spoutZ=10,spoutH=14,spoutTop=deckTop+spoutH;
+  const portR=params.opening/2,spoutH=14,spoutTop=deckTop+spoutH;
   const outer=neckR+2.2,spoutOuter=portR+2.2,capOuter=spoutOuter+2.5;
+  const spoutZ=Math.min(22,outer-capOuter-4.5);
   lidGroup=new THREE.Group();lidGroup.name='flush_hollow_threaded_main_lid';product.add(lidGroup);
   newMesh(threadedSkirt(neckR,h),lidMaterial,lidGroup,part,'open_bottom_female_threaded_skirt');
-  const deck=new THREE.Shape();deck.absarc(0,0,outer,0,Math.PI*2,false);
+  const deck=new THREE.Shape();deck.absarc(0,0,outer-1.1,0,Math.PI*2,false);
   const hole=new THREE.Path();hole.absarc(0,-spoutZ,portR,0,Math.PI*2,true);deck.holes.push(hole);
   const deckMesh=newMesh(flatShape(deck,deckThickness),lidMaterial,lidGroup,part,'deck_with_open_drink_aperture');deckMesh.position.y=deckBottom;
   const land=annulus(neckR-.25,neckR-params.wall+.25,.85,lidGroup,lidInnerMaterial,part,'continuous_annular_neck_sealing_land');land.position.y=h-.2;
-  const profile=[[portR,0],[spoutOuter,0],[spoutOuter,13.5],[spoutOuter-.2,14],[portR+.25,14],[portR,13.7],[portR,0]].map(p=>new THREE.Vector2(...p));
+  const profile=[[portR,0],[spoutOuter+.35,0],[spoutOuter,1],[spoutOuter,12.8],[spoutOuter-.1,13.5],[spoutOuter-.5,13.9],[portR+.35,14],[portR,13.75],[portR,0]].map(p=>new THREE.Vector2(...p));
   const spout=newMesh(new THREE.LatheGeometry(profile,96),lidMaterial,lidGroup,drinkPart,'continuous_open_threaded_drinking_spout');spout.position.set(0,deckTop,spoutZ);
+  const seatProfile=[[spoutOuter+.3,0],[capOuter+1.1,0],[capOuter+1.1,.15],[capOuter+.65,.42],[spoutOuter+.3,.42],[spoutOuter+.3,0]].map(p=>new THREE.Vector2(...p));
+  const seat=newMesh(new THREE.LatheGeometry(seatProfile,96),lidMaterial,lidGroup,drinkPart,'integral_molded_cap_seat');seat.position.set(0,deckTop,spoutZ);
   const points=[];
-  for(let i=0;i<=240;i++){const t=i/240,a=t*2.15*Math.PI*2;points.push(new THREE.Vector3(Math.sin(a)*(spoutOuter+.25),deckTop+4.5+t*2.15*2.6,spoutZ+Math.cos(a)*(spoutOuter+.25)));}
-  newMesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),240,.28,8,false),lidMaterial,lidGroup,drinkPart,'external_spout_helical_thread');
-  // Grip texture is recessed inside the bottle's maximum diameter.
-  for(let i=0;i<48;i++){const a=i/48*Math.PI*2;const grip=newMesh(new THREE.CylinderGeometry(.12,.12,6.5,4),lidMaterial,lidGroup,part,'inset_fiber_grip_flute');grip.position.set(Math.sin(a)*(outer-.14),h-3.6,Math.cos(a)*(outer-.14));}
+  for(let i=0;i<=240;i++){const t=i/240,a=t*1.5*Math.PI*2;points.push(new THREE.Vector3(Math.sin(a)*(spoutOuter+.25),deckTop+4+t*1.5*3.2,spoutZ+Math.cos(a)*(spoutOuter+.25)));}
+  newMesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),240,.4,12,false),lidMaterial,lidGroup,drinkPart,'external_spout_helical_thread');
+  // Grip relief is modeled into each skirt, rather than attached pin-like ribs.
   flipGroup=new THREE.Group();flipGroup.name='removable_screw_spout_overcap';lidGroup.add(flipGroup);
-  newMesh(spoutCapSleeve(spoutOuter+.2,capOuter,10.5),lidMaterial,flipGroup,drinkPart,'hollow_female_threaded_spout_cap');
-  const roof=newMesh(new THREE.CylinderGeometry(capOuter,capOuter,2,96),lidMaterial,flipGroup,drinkPart,'solid_overcap_roof');roof.position.y=11.5;
-  // Flat annular underside meets the drinking rim; no plug enters the bore.
-  for(let i=0;i<28;i++){const a=i/28*Math.PI*2;const flute=newMesh(new THREE.CylinderGeometry(.15,.15,8,4),lidMaterial,flipGroup,drinkPart,'small_cap_grip_flute');flute.position.set(Math.sin(a)*(capOuter-.18),5.5,Math.cos(a)*(capOuter-.18));}
-  lidGroup.userData={deckTop,spoutTop,portR,spoutZ,capBase:deckTop+3.5,capOuter,mainOuter:outer};
+  newMesh(spoutCapSleeve(spoutOuter+.2,capOuter,12.8),lidMaterial,flipGroup,drinkPart,'hollow_female_threaded_spout_cap');
+  // A rounded crown replaces the generic sharp-edged cylinder. The flat underside
+  // meets the spout rim at 14 mm above the deck, without entering the passage.
+  const roofProfile=[new THREE.Vector2(0,12.8),new THREE.Vector2(capOuter,12.8)];
+  for(let i=1;i<=16;i++){const a=i/16*Math.PI/2;roofProfile.push(new THREE.Vector2(capOuter-.8+.8*Math.cos(a),12.8+.8*Math.sin(a)));}
+  for(let i=1;i<=30;i++){const r=(capOuter-.8)*(1-i/30);roofProfile.push(new THREE.Vector2(r,14.8-1.2*(r/(capOuter-.8))**2));}
+  roofProfile.push(new THREE.Vector2(0,12.8));
+  newMesh(new THREE.LatheGeometry(roofProfile,128),lidMaterial,flipGroup,drinkPart,'solid_overcap_roof');
+  lidGroup.userData={deckTop,spoutTop,portR,spoutZ,capBase:deckTop+1.2,capOuter,mainOuter:outer};
 }
 updatePose=function(){
   if(!lidGroup)return;
   lidGroup.position.y=params.explode;
   flipGroup.position.set(0,lidGroup.userData.capBase+(params.flip?26:0),lidGroup.userData.spoutZ);
-  flipGroup.rotation.set(0,params.flip?-2.15*Math.PI*2:0,0);
+  flipGroup.rotation.set(0,params.flip?-1.5*Math.PI*2:0,0);
   bodyGroup.visible=!lidDetail;floor.visible=!lidDetail;
   for(const material of [lidMaterial,lidInnerMaterial]){material.clippingPlanes=params.section?[sectionPlane]:[];material.clipShadows=true;}
 };
 rebuild=function(){
   sanitize();if(product){scene.remove(product);disposeGeometry(product);}
-  product=new THREE.Group();product.name='SPIRA_FIBER_REV4_mm';scene.add(product);
+  product=new THREE.Group();product.name='SPIRA_FIBER_REV5_mm';scene.add(product);
   bodyGroup=new THREE.Group();bodyGroup.name='integrated_wall_helix_body';product.add(bodyGroup);
   const h=bodyHeight();bodyMesh=newMesh(wallGeometry(),[bodyMaterial,coatingMaterial,sectionMaterial],bodyGroup,'Body / wall helix','shallow_outer_deep_inner_wall');
   const start=params.section?Math.PI*.27:0,sweep=params.section?Math.PI*1.46:Math.PI*2;

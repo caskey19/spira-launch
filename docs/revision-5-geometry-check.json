@@ -1,0 +1,23 @@
+{
+  "revision": 5,
+  "passed": [
+    "195 mm closed height",
+    "90 mm body-aligned main lid",
+    "no hinge, latch or bore plug",
+    "both continuous helical threads present",
+    "closed aperture covered",
+    "hollow cap underside and rim-face contact",
+    "open drink passage",
+    "independent inner and outer depths",
+    "finite section geometry",
+    "sampled nonintersecting spout threads",
+    "close-seated small cap",
+    "rounded crown geometry",
+    "integrated grip relief"
+  ],
+  "minThreadClearanceMm": 0.439,
+  "closedHeight": 195.00000019073485,
+  "mainLidDiameter": 90,
+  "cavityMl": 844,
+  "crestSectionMm": 12
+}
