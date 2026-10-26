@@ -45,6 +45,8 @@ This Figma file holds launch foundations; the website and shared geometry are th
 
 ## Hosting
 
+GitHub Pages is deployed by `.github/workflows/jekyll-gh-pages.yml` on pushes to `main`. Despite its original filename, this is now a static deployment: it checks the site and uploads **only `dist/`** as the Pages artifact. Keep Pages' publishing source set to **GitHub Actions**. A root-level Jekyll build would publish this README instead of the landing page.
+
 Deploy `dist/` to any static host. Its assets use relative paths. The tracked `.openai/hosting.json` identifies the separate private Sites preview. Canonical and Open Graph URLs in `index.html` should be updated if the public origin changes.
 
 Three.js and Manrope are vendored for a self-contained page. Their license files accompany the assets. The server and checks use Node built-ins only.
